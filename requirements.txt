@@ -1,0 +1,13 @@
+Flask
+pandas
+scikit-learn
+google-generativeai
+python-dotenv
+werkzeug
+py-googletrans
+Pillow
+PyMuPDF
+requests
+beautifulsoup4
+Flask-Cors
+httpx==0.26.0
