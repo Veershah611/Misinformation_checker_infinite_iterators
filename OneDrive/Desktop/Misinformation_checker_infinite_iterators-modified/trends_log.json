@@ -1,0 +1,74 @@
+[
+    {
+        "timestamp": "2025-09-19T17:45:10.969024",
+        "verdict": "Partially True",
+        "category": "Other",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T17:46:13.890307",
+        "verdict": "True",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T17:49:59.161121",
+        "verdict": "Partially False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T18:38:23.706351",
+        "verdict": "Partially False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T18:47:28.888334",
+        "verdict": "Partially False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T18:49:19.890995",
+        "verdict": "Partially False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T18:51:07.623103",
+        "verdict": "Partially False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-19T18:55:05.802272",
+        "verdict": "Partially False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-20T18:37:53.890838",
+        "verdict": "False",
+        "category": "Other",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-20T18:38:28.407534",
+        "verdict": "False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-20T18:39:04.076263",
+        "verdict": "False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-20T18:39:27.944228",
+        "verdict": "False",
+        "category": "Political",
+        "source": "text"
+    }
+]
