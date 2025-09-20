@@ -32,7 +32,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchTrends = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/trends")
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/trends`)
         if (!response.ok) {
           throw new Error("Failed to fetch trends data from the server.")
         }
