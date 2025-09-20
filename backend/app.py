@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 import mimetypes
 import datetime
 from threading import Lock
-git
 app = Flask(__name__)
 CORS(app)
 
