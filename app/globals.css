@@ -38,6 +38,15 @@
   --sidebar-accent-foreground: oklch(0.25 0.02 260);
   --sidebar-border: oklch(0.88 0.02 240);
   --sidebar-ring: oklch(0.55 0.18 240);
+
+
+
+  /* Chart palette - bright and contrasting */
+  --chart-1: #06b6d4; /* cyan */
+  --chart-2: #60a5fa; /* blue */
+  --chart-3: #7c3aed; /* violet */
+  --chart-4: #f59e0b; /* amber */
+  --chart-5: #ef4444; /* red */
 }
 
 .dark {
@@ -74,6 +83,15 @@
   --sidebar-accent-foreground: oklch(0.85 0.01 240);
   --sidebar-border: oklch(0.18 0.01 240);
   --sidebar-ring: oklch(0.65 0.18 240);
+
+
+
+  /* Chart palette (same hue, slightly brighter) */
+  --chart-1: #34dce6;
+  --chart-2: #7fb5ff;
+  --chart-3: #9a6cff;
+  --chart-4: #ffb86b;
+  --chart-5: #ff6b6b;
 }
 
 @theme inline {

@@ -46,6 +46,13 @@ export function Navbar() {
           About Us
         </a>
         <Link
+          href="/dashboard"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:tracking-widest"
+          prefetch={false}
+        >
+          Dashboard
+        </Link>
+        <Link
           href="/"
           className="text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:tracking-widest"
         >
