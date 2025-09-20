@@ -68,7 +68,7 @@ export default function AIFactChecker() {
   const [replies, setReplies] = useState<string[]>([])
   const [isReplyLoading, setIsReplyLoading] = useState(false)
   
-  const API_BASE_URL = "http://127.0.0.1:5000"
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
   const getVerdictIcon = (verdict: string) => {
     const normalizedVerdict = verdict?.toLowerCase() ?? ""
