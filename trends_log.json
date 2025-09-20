@@ -178,5 +178,47 @@
         "verdict": "False",
         "category": "Political",
         "source": "text"
+    },
+    {
+        "timestamp": "2025-09-20T22:40:18.553247",
+        "verdict": "False",
+        "category": "Other",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-20T23:56:58.721271",
+        "verdict": "True",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-21T00:16:28.051515",
+        "verdict": "False",
+        "category": "Social",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-21T00:17:05.067054",
+        "verdict": "False",
+        "category": "Other",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-21T00:20:00.396286",
+        "verdict": "False",
+        "category": "Other",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-21T00:21:11.466817",
+        "verdict": "False",
+        "category": "Political",
+        "source": "text"
+    },
+    {
+        "timestamp": "2025-09-21T00:26:16.629756",
+        "verdict": "True",
+        "category": "Political",
+        "source": "text"
     }
 ]

@@ -6,24 +6,12 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-6">
             <a
               className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 tracking-wide"
-              href="#privacy"
-            >
-              Privacy Policy
-            </a>
-            <a
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 tracking-wide"
-              href="#terms"
-            >
-              Terms of Service
-            </a>
-            <a
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 tracking-wide"
-              href="#contact"
+              href="/homepage/#team"
             >
               Contact Us
             </a>
           </div>
-          <p className="text-sm text-muted-foreground tracking-wide">© 2024 ClaimGuard. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground tracking-wide">© 2025 Infinite Iterators. All rights reserved.</p>
         </div>
       </div>
     </footer>

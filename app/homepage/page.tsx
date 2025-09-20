@@ -16,50 +16,49 @@ const handleAnimationComplete = () => {
 };
 
 export default function HomePage() {
-  // NOTE: I've used placeholder images from pravatar.cc. 
-  // You should replace the `avatarUrl` and `miniAvatarUrl` props with your actual image URLs.
+
   const teamMembers = [
     {
       name: "Jemil Patel",
-      title: "UI/UX Designer",
-      handle: "alex_ai",
-      avatarUrl: "/images/jemil_avatar.png",
-      miniAvatarUrl: "/images/jemil_avatar.png",
+      title: "UI/UX Developer and Berojgar",
+      handle: "jemil_patel",
+      avatarUrl: "/images/Jemil.jpg",
+      miniAvatarUrl: "/images/Jemil.jpg",
+      // Add your LinkedIn URL here
+      linkedinUrl: "https://www.linkedin.com/in/jemil-patel-630292304/",
     },
     {
       name: "Veer Shah",
-      title: "Backend Developer",
-      handle: "sam_data",
-      avatarUrl: "https://i.pravatar.cc/500?img=2",
-      miniAvatarUrl: "https://i.pravatar.cc/100?img=2",
+      title: "Full Stack Developer",
+      handle: "veer_shah",
+      avatarUrl: "/images/Veer.jpg",
+      miniAvatarUrl: "/images/Veer.jpg",
+      linkedinUrl: "https://www.linkedin.com/in/veer-shah-50b044326/",
     },
     {
-      name: "Michael Chen",
-      title: "Cybersecurity Expert",
-      handle: "mike_sec",
-      avatarUrl: "https://i.pravatar.cc/500?img=3",
-      miniAvatarUrl: "https://i.pravatar.cc/100?img=3",
+      name: "Man Patel",
+      title: "UI/UX Designer and Backend Developer",
+      handle: "man_patel",
+      avatarUrl: "/images/Mann.jpg",
+      miniAvatarUrl: "/images/Mann.jpg",
+      linkedinUrl: "https://www.linkedin.com/in/man-patel-830b99313/",
     },
     {
-      name: "Jessica Davis",
+      name: "Rudra Patel",
       title: "UX/UI Designer",
-      handle: "jess_designs",
-      avatarUrl: "https://i.pravatar.cc/500?img=4",
-      miniAvatarUrl: "https://i.pravatar.cc/100?img=4",
+      handle: "rudra_patel",
+      avatarUrl: "/images/Rudra.jpg",
+      miniAvatarUrl: "/images/Rudra.jpg",
+      linkedinUrl: "https://www.linkedin.com/in/r-patel-997a2a311/",
     },
+    
     {
-      name: "David Wilson",
-      title: "Full-Stack Developer",
-      handle: "dave_codes",
-      avatarUrl: "https://i.pravatar.cc/500?img=5",
-      miniAvatarUrl: "https://i.pravatar.cc/100?img=5",
-    },
-    {
-      name: "Emily Carter",
+      name: "Het Tala",
       title: "Product Manager",
-      handle: "em_prod",
-      avatarUrl: "https://i.pravatar.cc/500?img=6",
-      miniAvatarUrl: "https://i.pravatar.cc/100?img=6",
+      handle: "het_tala",
+      avatarUrl: "/images/Het.jpg",
+      miniAvatarUrl: "/images/Het.jpg",
+      linkedinUrl: "https://www.linkedin.com/in/het-tala-413429315/",
     },
   ]
 
@@ -98,12 +97,14 @@ export default function HomePage() {
                     Check Claim
                   </Button>
                 </Link>
+                <Link href="#about">
                 <Button
                   variant="outline"
                   className="font-bold tracking-wide h-12 px-6 text-base transform hover:scale-105 transition-all duration-300 bg-transparent"
                 >
                   Learn More
                 </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -227,7 +228,7 @@ export default function HomePage() {
         </section>
 
         {/* --- NEW TEAM SECTION --- */}
-        <section className="py-16 sm:py-24 bg-background">
+        <section className="py-16 sm:py-24 bg-background" id="team">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center mb-16 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-foreground">
@@ -248,8 +249,9 @@ export default function HomePage() {
                   miniAvatarUrl={member.miniAvatarUrl}
                   behindGradient="linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
                   innerGradient="linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-
-                  onContactClick={() => alert(`Contacting ${member.name}`)}
+                  
+                  // This function now opens the LinkedIn URL in a new tab
+                  onContactClick={() => member.linkedinUrl && window.open(member.linkedinUrl, '_blank', 'noopener,noreferrer')}
                 />
               ))}
             </div>
