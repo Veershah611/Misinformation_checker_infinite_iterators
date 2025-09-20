@@ -11,3 +11,4 @@ requests
 beautifulsoup4
 Flask-Cors
 httpx==0.26.0
+gunicorn
