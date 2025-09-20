@@ -1,259 +1,9 @@
-# import os 
-# import pandas as pd 
-# from sklearn.feature_extraction.text import TfidfVectorizer 
-# from sklearn.metrics.pairwise import cosine_similarity 
-# import google.generativeai as genai 
-# import json 
-# from flask import Flask, request, jsonify 
-# from flask_cors import CORS 
-# from werkzeug.utils import secure_filename 
-# import tempfile 
-# from googletrans import Translator 
-# from PIL import Image 
-# import fitz  # PyMuPDF 
-# import requests 
-# from bs4 import BeautifulSoup 
-# import mimetypes 
-
-# app = Flask(__name__) 
-# # Enable CORS to allow requests from the React frontend (running on a different port) 
-# CORS(app) 
-
-# # Allowed file extensions 
-# ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "pdf"} 
-
-# def allowed_file(filename): 
-#     """Checks if the uploaded file has an allowed extension.""" 
-#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS 
-
-# # --- 1. API Key Configuration --- 
-# try: 
-#     # Load environment variables if you have a .env file 
-#     from dotenv import load_dotenv 
-#     load_dotenv() 
-#     api_key = os.getenv("GEMINI_API_KEY") 
-#     if not api_key: 
-#         raise ValueError("GEMINI_API_KEY not found in environment variables.") 
-#     genai.configure(api_key=api_key) 
-#     print("✅ Gemini API configured successfully.") 
-# except Exception as e: 
-#     print(f"🚨 Error configuring Gemini API: {e}") 
-#     api_key = None 
-
-# # --- 2. Data Loading and Retriever Setup (Done once on startup) --- 
-# df = None 
-# vectorizer = None 
-# X = None 
-# try: 
-#     print("⏳ Loading local datasets...") 
-#     df1 = pd.read_csv("IFND.csv", encoding='latin1', on_bad_lines='skip') 
-#     df2 = pd.read_csv("news_dataset.csv", encoding='latin1', on_bad_lines='skip') 
-#     df1 = df1.rename(columns={"Statement": "text", "Label": "label", "Web": "source"}) 
-#     if 'source' not in df2.columns: 
-#         df2['source'] = '' 
-#     df = pd.concat([df1, df2], ignore_index=True) 
-#     vectorizer = TfidfVectorizer(stop_words="english", max_features=5000) 
-#     X = vectorizer.fit_transform(df["text"].astype(str)) 
-#     print(f"📄 Datasets loaded successfully with {len(df)} statements.") 
-# except Exception as e: 
-#     print(f"❌ Could not load local datasets: {e}") 
-
-# def retrieve_relevant_facts(query: str, top_k: int = 3) -> pd.DataFrame: 
-#     """Retrieves the top_k most relevant facts from the local dataframe.""" 
-#     if df is None or vectorizer is None: 
-#         return pd.DataFrame() 
-#     query_vec = vectorizer.transform([query]) 
-#     similarities = cosine_similarity(query_vec, X).flatten() 
-#     top_indices = similarities.argsort()[-top_k:][::-1] 
-#     return df.iloc[top_indices] 
-
-# # --- 3. Core Fact-Checking & Translation Logic --- 
-# def get_fact_check_from_gemini(claim: str, files: list = None, output_lang='en') -> dict: 
-#     if not api_key: 
-#         return {"error": "API Key is not configured on the server."} 
-    
-#     facts = retrieve_relevant_facts(claim) 
-#     facts_text = "No relevant facts found in the local dataset." 
-#     if not facts.empty: 
-#         facts_text = "\n".join([f"- {row['text']} (Label: {row['label']})" for _, row in facts.iterrows()]) 
-
-#     prompt = f""" 
-#     You are a meticulous fact-checking analyst. Your task is to rigorously investigate the claim provided. 
-
-#     **Claim to Investigate:** "{claim}" 
-
-#     **Supporting Context from a Local Dataset (Use as a reference point only):** {facts_text} 
-
-#     **Task:** 1.  Use your internal knowledge and perform a real-time web search for the latest, most reliable information to verify the claim. 
-#     2.  If files are provided, analyze their content (images, text) as primary evidence. 
-#     3.  Return your complete analysis as a single JSON object. DO NOT wrap it in markdown or any other formatting. 
-
-#     **Required JSON Output Structure:** {{ 
-#       "claim_analysis": {{ 
-#         "verdict": "A clear, one-word conclusion: 'True', 'False', 'Misleading', 'Partially True', or 'Unverifiable'.", 
-#         "score": "A truthfulness confidence score (0-100).", 
-#         "explanation": "A detailed, narrative-style explanation of your findings, citing sources within the text where applicable." 
-#       }}, 
-#       "categorized_points": {{ 
-#         "points_supporting_truthfulness": ["A list of distinct facts or arguments that support the claim's validity."], 
-#         "points_refuting_the_claim": ["A list of distinct facts or arguments that contradict the claim."] 
-#       }}, 
-#       "risk_assessment": {{ 
-#         "possible_consequences": ["A list of potential real-world harms if this information is widely believed."] 
-#       }}, 
-#       "public_guidance_and_resources": {{ 
-#         "tips_to_identify_similar_scams": ["Actionable advice for the public to spot similar false information."], 
-#         "official_government_resources": {{ 
-#           "relevant_agency_website": "Link to an official government site (e.g., Ministry of Health, RBI).", 
-#           "national_helpline_number": "An official, relevant helpline number (e.g., 'National Cyber Crime Reporting Portal: 1930')." 
-#         }} 
-#       }}, 
-#       "evidence_log": {{ 
-#         "external_sources": [{{ "source_name": "Name of the external source (e.g., World Health Organization).", "url": "A direct URL to the source material." }}] 
-#       }} 
-#     }} 
-#     """ 
-#     try: 
-#         model = genai.GenerativeModel("gemini-1.5-flash") 
-        
-#         # Prepare content for the API call (text + files) 
-#         contents = [prompt] 
-#         if files: 
-#             contents.extend(files) 
-
-#         response = model.generate_content(contents) 
-#         cleaned_text = response.text.strip().replace("```json", "").replace("```", "") 
-#         result = json.loads(cleaned_text) 
-        
-#         # Translate output if the original language was not English 
-#         if output_lang != 'en' and output_lang != 'en-gb': 
-#             translator = Translator() 
-#             # Recursively translate all string values in the JSON object, skipping URLs 
-#             def translate_recursive(data): 
-#                 if isinstance(data, str): 
-#                     return translator.translate(data, dest=output_lang).text 
-#                 elif isinstance(data, list): 
-#                     return [translate_recursive(item) for item in data] 
-#                 elif isinstance(data, dict): 
-#                     return {k: v if k in ['url', 'relevant_agency_website'] else translate_recursive(v) for k, v in data.items()} 
-#                 return data 
-            
-#             return translate_recursive(result) 
-            
-#         return result 
-#     except json.JSONDecodeError: 
-#         return {"error": "Failed to parse JSON response from the model.", "raw_response": response.text} 
-#     except Exception as e: 
-#         return {"error": f"An API or other error occurred: {e}"} 
-
-# # --- 4. Language Translation Utility --- 
-# def translate_text_to_english(text): 
-#     """Detects language and translates to English if necessary.""" 
-#     if not text or not text.strip(): 
-#         return text, 'en' 
-#     translator = Translator() 
-#     try: 
-#         detected = translator.detect(text) 
-#         input_lang = detected.lang 
-#         if input_lang != 'en': 
-#             translated_text = translator.translate(text, dest='en').text 
-#             return translated_text, input_lang 
-#         return text, 'en' 
-#     except Exception: 
-#         # If detection fails for any reason, assume English 
-#         return text, 'en' 
-
-# # --- 5. Flask API Routes --- 
-# @app.route("/fact-check-text", methods=["POST"]) 
-# def fact_check_text(): 
-#     """Receives a text claim, processes it, and returns the result.""" 
-#     data = request.get_json() 
-#     if not data or "claim" not in data: 
-#         return jsonify({"error": "Invalid request. 'claim' key is missing."}), 400 
-    
-#     claim, input_lang = translate_text_to_english(data["claim"]) 
-#     result = get_fact_check_from_gemini(claim, output_lang=input_lang) 
-#     return jsonify(result) 
-
-# @app.route("/fact-check-url", methods=["POST"]) 
-# def fact_check_url(): 
-#     """Receives a URL, scrapes its content, and returns the fact-check result.""" 
-#     data = request.get_json() 
-#     if not data or "url" not in data: 
-#         return jsonify({"error": "Invalid request. 'url' key is missing."}), 400 
-
-#     url = data["url"] 
-#     claim_context = data.get("claim", "Analyze the content of the provided URL.") 
-
-#     try: 
-#         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'} 
-#         page = requests.get(url, headers=headers, timeout=10) 
-#         page.raise_for_status() 
-#         soup = BeautifulSoup(page.content, 'html.parser') 
-        
-#         texts = [p.get_text(strip=True) for p in soup.find_all(['p', 'h1', 'h2', 'h3', 'article', 'title'])] 
-#         content = "\n".join(filter(None, texts)) 
-        
-#         if not content: 
-#             return jsonify({"error": f"Could not extract meaningful text content from the URL."}), 400 
-        
-#         full_claim = f"{claim_context}\n\n**Content from URL ({url}):**\n{content[:4000]}" # Limit context size 
-        
-#         claim_en, input_lang = translate_text_to_english(full_claim) 
-#         result = get_fact_check_from_gemini(claim_en, output_lang=input_lang) 
-#         return jsonify(result) 
-
-#     except requests.exceptions.RequestException as e: 
-#         return jsonify({"error": f"Failed to fetch URL: {e}"}), 500 
-#     except Exception as e: 
-#         return jsonify({"error": f"An unexpected error occurred while processing the URL: {e}"}), 500 
-
-# @app.route("/fact-check-file", methods=["POST"]) 
-# def fact_check_file(): 
-#     """Receives files (images/PDFs), sends them to the model, and returns the result.""" 
-#     claim_text = request.form.get("claim", "Analyze the content of the attached file(s).") 
-#     files = request.files.getlist("files") 
-    
-#     if not files: 
-#         return jsonify({"error": "No files were uploaded."}), 400 
-
-#     gemini_files = [] 
-#     for file in files: 
-#         if file and allowed_file(file.filename): 
-#             mime_type = mimetypes.guess_type(file.filename)[0] 
-#             if mime_type: 
-#                 gemini_files.append({"mime_type": mime_type, "data": file.read()}) 
-    
-#     if not gemini_files: 
-#         return jsonify({"error": "Uploaded file types are not supported. Please use JPG, PNG, or PDF."}), 400 
-
-#     claim_en, input_lang = translate_text_to_english(claim_text) 
-#     result = get_fact_check_from_gemini(claim_en, files=gemini_files, output_lang=input_lang) 
-#     return jsonify(result) 
-
-
-# if __name__ == "__main__": 
-#     app.run(debug=True, port=5000)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # app.py (Corrected and Complete)
 
 import os
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+# from sklearn.feature_extraction.text import TfidfVectorizer # No longer needed
+# from sklearn.metrics.pairwise import cosine_similarity # No longer needed
 import google.generativeai as genai
 import json
 from flask import Flask, request, jsonify
@@ -294,34 +44,7 @@ except Exception as e:
     print(f"🚨 Error configuring Gemini API: {e}")
     api_key = None
 
-df = None
-vectorizer = None
-X = None
-try:
-    print("⏳ Loading local datasets...")
-    # Load datasets safely
-    df1 = pd.read_csv("IFND.csv", encoding='latin1', on_bad_lines='skip')
-    df2 = pd.read_csv("news_dataset.csv", encoding='latin1', on_bad_lines='skip')
-    df1 = df1.rename(columns={"Statement": "text", "Label": "label", "Web": "source"})
-    if 'source' not in df2.columns:
-        df2['source'] = ''
-    df = pd.concat([df1, df2], ignore_index=True)
-    vectorizer = TfidfVectorizer(stop_words="english", max_features=5000)
-    X = vectorizer.fit_transform(df["text"].astype(str))
-    print(f"📄 Datasets loaded successfully with {len(df)} statements.")
-except Exception as e:
-    print(f"❌ Could not load local datasets: {e}")
-
-
 # --- Core Logic Functions ---
-def retrieve_relevant_facts(query: str, top_k: int = 3) -> pd.DataFrame:
-    if df is None or vectorizer is None:
-        return pd.DataFrame()
-    query_vec = vectorizer.transform([query])
-    similarities = cosine_similarity(query_vec, X).flatten()
-    top_indices = similarities.argsort()[-top_k:][::-1]
-    return df.iloc[top_indices]
-
 def get_claim_category(claim: str) -> str:
     if not api_key or not claim.strip():
         return "Uncategorized"
@@ -364,32 +87,65 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
     if not api_key:
         return {"error": "API Key is not configured on the server."}
     
-    facts = retrieve_relevant_facts(claim)
-    facts_text = "No relevant facts found in the local dataset."
-    if not facts.empty:
-        facts_text = "\n".join([f"- {row['text']} (Label: {row['label']})" for _, row in facts.iterrows()])
+    # Get the real current date to provide as context
+    current_date_str = datetime.datetime.now().strftime("%Y-%m-%d")
 
+    # --- THIS PROMPT HAS BEEN CORRECTED TO HANDLE DATES CORRECTLY ---
     prompt = f"""
-    You are a meticulous fact-checking analyst. Your task is to rigorously investigate a claim and return your analysis in the user's original language.
-    **Claim to Investigate:** "{claim}"
-    **Supporting Context from a Local Dataset (Use as a reference point only):**
-    {facts_text}
-    **Task:**
-    1. First, detect the language of the user's claim (e.g., "Hindi", "English", "Spanish").
-    2. Use your internal knowledge and perform a real-time web search for the latest, most reliable information to verify the claim. Conduct your primary research in English for the most comprehensive results.
-    3. If an image file is provided, perform a reverse image search to find its origin, date, and original context.
-    4. Formulate your complete analysis and all findings in English first.
-    5. **Translate the entire final JSON object** into the language you detected in step 1. All string values in the JSON must be translated, except for keys like "url".
-    6. Return your complete, translated analysis as a single JSON object. DO NOT wrap it in markdown.
-    **Required JSON Output Structure:**
-    {{
-      "claim_analysis": {{"verdict": "...", "score": "...", "explanation": "..."}},
-      "categorized_points": {{"points_supporting_truthfulness": [], "points_refuting_the_claim": []}},
-      "risk_assessment": {{"possible_consequences": []}},
-      "public_guidance_and_resources": {{"tips_to_identify_similar_scams": [], "official_government_resources": {{"relevant_agency_website": "...", "national_helpline_number": "..."}}}},
-      "evidence_log": {{"external_sources": [{{ "source_name": "...", "url": "..." }}], "image_analysis": {{"reverse_search_summary": "...", "original_context": "..."}}}}
+### ROLE ###
+You are a highly advanced AI fact-checking engine. Your ONLY function is to analyze claims against the most recent, reputable news sources available on the web. You must be objective, fast, and precise.
+
+### CONTEXT ###
+Today's actual date is: {current_date_str}. You MUST use this as your frame of reference. Do not rely on your internal knowledge cutoff date.
+
+### PRIMARY DIRECTIVE ###
+For the user's claim, you must perform a real-time, deep web search focused on news articles relevant to the claim's timeframe. If the claim is about a recent event, focus on the LAST 72 HOURS.
+
+### CLAIM ###
+"{claim}"
+
+### STEP-BY-STEP EXECUTION PLAN ###
+1.  **Date Analysis:** Analyze the claim for any specific dates. Your web search and verification MUST be relative to that date. **Crucially, you must ignore your internal knowledge cut-off date (e.g., 2023) and rely solely on real-time web search results relevant to the date in the claim.**
+2.  **Language Detection:** Identify the language of the claim. You will provide your final JSON response in this language.
+3.  **Search Query Formulation:** Formulate multiple, precise English search queries. If there was a date in the claim, use it in your search terms. Create a list of these queries for your evidence log.
+4.  **Source Prioritization & Vetting:** Execute the search. You MUST prioritize results from: Reuters, Associated Press (AP), Press Trust of India (PTI), ANI. If nothing is found, expand to other major outlets.
+5.  **Evidence Synthesis (English):** Analyze the search results in English. If top-tier sources have NO mention of a major claimed event, state this explicitly as strong evidence that the claim is false.
+6.  **Final JSON Generation (Translated):** Construct the final JSON object. Translate ALL text values to the language detected in Step 2.
+
+### STRICT OUTPUT FORMAT ###
+You MUST return ONLY a single, valid JSON object. Do not include markdown.
+
+**JSON Schema:**
+{{
+  "claim_analysis": {{
+    "verdict": "A clear, one-word conclusion: 'True', 'False', 'Misleading', 'Partially True', or 'Unverified'.",
+    "score": "An integer from 0 (Completely False/No Evidence) to 100 (Verified by multiple top-tier sources).",
+    "explanation": "A detailed explanation. START by listing the reputable sources you checked (e.g., 'Based on a real-time search of Reuters, PTI, and The Hindu...'). Then, summarize your findings. The entire explanation must be translated."
+  }},
+  "categorized_points": {{
+    "points_supporting_truthfulness": ["A translated list of distinct supporting facts."],
+    "points_refuting_the_claim": ["A translated list of distinct refuting facts."]
+  }},
+  "risk_assessment": {{
+    "possible_consequences": ["A translated list of potential harms."]
+  }},
+  "public_guidance_and_resources": {{
+    "tips_to_identify_similar_scams": ["A translated list of actionable tips."],
+    "official_government_resources": {{
+      "relevant_agency_website": "URL to an official site.",
+      "national_helpline_number": "Official helpline number."
     }}
-    """
+  }},
+  "evidence_log": {{
+    "search_queries_used": ["A list of the exact English search queries you formulated."],
+    "external_sources": [{{ "source_name": "Source Name (e.g., Reuters).", "url": "Direct URL to the article." }}],
+    "image_analysis": {{
+        "reverse_search_summary": "A summary of reverse image search findings.",
+        "original_context": "Describe the original context of the image if found."
+    }}
+  }}
+}}
+"""
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")

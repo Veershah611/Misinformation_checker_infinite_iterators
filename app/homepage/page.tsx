@@ -20,15 +20,15 @@ export default function HomePage() {
   // You should replace the `avatarUrl` and `miniAvatarUrl` props with your actual image URLs.
   const teamMembers = [
     {
-      name: "Alex Johnson",
-      title: "Lead AI Researcher",
+      name: "Jemil Patel",
+      title: "UI/UX Designer",
       handle: "alex_ai",
-      avatarUrl: "https://i.pravatar.cc/500?img=1",
-      miniAvatarUrl: "https://i.pravatar.cc/100?img=1",
+      avatarUrl: "/images/jemil_avatar.png",
+      miniAvatarUrl: "/images/jemil_avatar.png",
     },
     {
-      name: "Samantha Bee",
-      title: "Data Scientist",
+      name: "Veer Shah",
+      title: "Backend Developer",
       handle: "sam_data",
       avatarUrl: "https://i.pravatar.cc/500?img=2",
       miniAvatarUrl: "https://i.pravatar.cc/100?img=2",
