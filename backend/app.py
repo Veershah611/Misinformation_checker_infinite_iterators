@@ -12,7 +12,7 @@ import mimetypes
 import datetime
 from threading import Lock
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://misinformation-checker-infinite-iterators-7p5dvduxh.vercel.app"])
 
 # --- Configuration and Setup ---
 TRENDS_LOG_FILE = "trends_log.json"
