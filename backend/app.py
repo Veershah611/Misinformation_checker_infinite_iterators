@@ -1,5 +1,3 @@
-# app.py (Corrected and Complete)
-
 import os
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -133,11 +131,37 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
     6. Return your complete, translated analysis as a single JSON object. DO NOT wrap it in markdown.
     **Required JSON Output Structure:**
     {{
-      "claim_analysis": {{"verdict": "...", "score": "...", "explanation": "..."}},
-      "categorized_points": {{"points_supporting_truthfulness": [], "points_refuting_the_claim": []}},
-      "risk_assessment": {{"possible_consequences": []}},
-      "public_guidance_and_resources": {{"tips_to_identify_similar_scams": [], "official_government_resources": {{"relevant_agency_website": "...", "national_helpline_number": "..."}}}},
-      "evidence_log": {{"external_sources": [{{ "source_name": "...", "url": "..." }}], "image_analysis": {{"reverse_search_summary": "...", "original_context": "..."}}}}
+      "claim_analysis": {{
+        "verdict": "A concise verdict in one or two words (e.g., 'True', 'False', 'Misleading', 'Unverified').",
+        "score": "An INTEGER score between 0 and 100 representing the claim's truthfulness. DO NOT use decimals. A 'True' verdict must have a score of 80 or higher. A 'False' verdict must have a score of 20 or lower.",
+        "explanation": "A detailed but easy-to-understand explanation for the verdict, summarizing the key findings."
+      }},
+      "categorized_points": {{
+        "points_supporting_truthfulness": ["List of key points or evidence supporting the claim's truthfulness."],
+        "points_refuting_the_claim": ["List of key points or evidence refuting the claim."]
+      }},
+      "risk_assessment": {{
+        "possible_consequences": ["List of potential risks or consequences of believing the misinformation (e.g., financial loss, health risks)."]
+      }},
+      "public_guidance_and_resources": {{
+        "tips_to_identify_similar_scams": ["List of actionable tips for the public to identify similar false claims or scams."],
+        "official_government_resources": {{
+          "relevant_agency_website": "URL to a relevant official government or health organization website.",
+          "national_helpline_number": "An official national helpline number for reporting or seeking help."
+        }}
+      }},
+      "evidence_log": {{
+        "external_sources": [
+          {{
+            "source_name": "Name of the credible source (e.g., 'Reuters', 'WHO').",
+            "url": "Direct URL to the article or evidence."
+          }}
+        ],
+        "image_analysis": {{
+          "reverse_search_summary": "A summary of findings from a reverse image search, if an image was provided.",
+          "original_context": "The original context, source, or date of the image, if found."
+        }}
+      }}
     }}
     """
     try:
@@ -148,6 +172,12 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
             contents.extend(files)
         response = model.generate_content(contents, generation_config=generation_config)
         result = json.loads(response.text)
+
+        # Safeguard to correct the score if the model returns a float between 0 and 1
+        if "claim_analysis" in result and "score" in result["claim_analysis"]:
+            score = result["claim_analysis"]["score"]
+            if isinstance(score, float) and 0.0 <= score <= 1.0:
+                result["claim_analysis"]["score"] = int(score * 100)
 
         if "claim_analysis" in result and "verdict" in result["claim_analysis"]:
             verdict = result["claim_analysis"]["verdict"]
@@ -296,3 +326,4 @@ def get_trends():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
