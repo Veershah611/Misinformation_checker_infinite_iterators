@@ -20,7 +20,7 @@ export default function HomePage() {
   const teamMembers = [
     {
       name: "Jemil Patel",
-      title: "UI/UX Developer and Berojgar",
+      title: "UI/UX Developer and Designer",
       handle: "jemil_patel",
       avatarUrl: "/images/Jemil.jpg",
       miniAvatarUrl: "/images/Jemil.jpg",
