@@ -1,11 +1,3 @@
-import os
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import google.generativeai as genai
-import json
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 # app.py
 import os
 import pandas as pd
@@ -135,7 +127,7 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
         facts_text = "\n".join([f"- {row['text']} (Label: {row['label']})" for _, row in facts.iterrows()])
 
     prompt = f"""
-    You are a meticulous fact-checking analyst. Your task is to rigorously investigate a claim and return your analysis in the user's original language.
+    You are an expert, multilingual fact-checking analyst. Your primary goal is to provide a neutral, evidence-based assessment of a claim's validity in the user's original language.
     **Claim to Investigate:** "{claim}"
     **Supporting Context from a Local Dataset (Use as a reference point only):**
     {facts_text}
