@@ -6,24 +6,32 @@ import google.generativeai as genai
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+# app.py
+import os
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import google.generativeai as genai
+import json
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import mimetypes
 import datetime
 from threading import Lock
-app = Flask(__name__)
-# app.py
 
-from flask_cors import CORS
-#...
-app = Flask(__name__)
+app = Flask(__name__) # 👈 Only ONE instance at the top
 
-# Configure CORS to allow requests specifically from your Vercel frontend
+# Configure CORS right after creating the app instance
 cors = CORS(app, resources={
     r"/*": {
         "origins": "https://misinformation-checker-infinite-ite.vercel.app"
     }
 })
+
+# --- Configuration and Setup ---
+TRENDS_LOG_FILE = "trends_log.json"
 # --- Configuration and Setup ---
 TRENDS_LOG_FILE = "trends_log.json"
 log_lock = Lock()

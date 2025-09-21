@@ -235,7 +235,7 @@ export default function HomePage() {
                 Meet the Team
               </h2>
               <p className="mt-4 text-lg text-muted-foreground tracking-wide">
-                The experts dedicated to fighting misinformation.
+                At Infinite Iterators, we believe the fight against misinformation requires a relentless, adaptive approach. We are a team dedicated to building an AI-powered shield for India's digital citizens, using Google's Generative AI to not just debunk falsehoods, but to educate and empower. Our mission is to iterate towards a future where truth is accessible, and every user is a critical, informed participant in the digital world.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-16 gap-x-8 justify-items-center">
