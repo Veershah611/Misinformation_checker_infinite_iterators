@@ -32,7 +32,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchTrends = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/trends`)
+        // in page.tsx
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/trends`)
         if (!response.ok) {
           throw new Error("Failed to fetch trends data from the server.")
         }
