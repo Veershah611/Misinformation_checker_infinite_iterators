@@ -12,8 +12,18 @@ import mimetypes
 import datetime
 from threading import Lock
 app = Flask(__name__)
-CORS(app, origins=["https://misinformation-checker-infinite-iterators-7p5dvduxh.vercel.app"])
+# app.py
 
+from flask_cors import CORS
+#...
+app = Flask(__name__)
+
+# Configure CORS to allow requests specifically from your Vercel frontend
+cors = CORS(app, resources={
+    r"/*": {
+        "origins": "https://misinformation-checker-infinite-ite.vercel.app"
+    }
+})
 # --- Configuration and Setup ---
 TRENDS_LOG_FILE = "trends_log.json"
 log_lock = Lock()

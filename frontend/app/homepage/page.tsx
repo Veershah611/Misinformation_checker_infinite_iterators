@@ -20,7 +20,7 @@ export default function HomePage() {
   const teamMembers = [
     {
       name: "Jemil Patel",
-      title: "UI/UX Developer and Designer",
+      title: "UI/UX Developer",
       handle: "jemil_patel",
       avatarUrl: "/images/Jemil.jpg",
       miniAvatarUrl: "/images/Jemil.jpg",
@@ -29,7 +29,7 @@ export default function HomePage() {
     },
     {
       name: "Veer Shah",
-      title: "Full Stack Developer",
+      title: "Backend Developer",
       handle: "veer_shah",
       avatarUrl: "/images/Veer.jpg",
       miniAvatarUrl: "/images/Veer.jpg",
@@ -37,7 +37,7 @@ export default function HomePage() {
     },
     {
       name: "Man Patel",
-      title: "UI/UX Designer and Backend Developer",
+      title: "AI/ML Specialist",
       handle: "man_patel",
       avatarUrl: "/images/Mann.jpg",
       miniAvatarUrl: "/images/Mann.jpg",
@@ -54,7 +54,7 @@ export default function HomePage() {
     
     {
       name: "Het Tala",
-      title: "Product Manager",
+      title: "Frontend Developer",
       handle: "het_tala",
       avatarUrl: "/images/Het.jpg",
       miniAvatarUrl: "/images/Het.jpg",
