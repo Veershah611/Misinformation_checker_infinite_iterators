@@ -30,7 +30,7 @@ export function StatsSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="animate-bounce-in animate-delay-100">
             <div className="text-4xl font-bold text-primary mb-2">
-              {isVisible && <AnimatedCounter end={10000} suffix="+" />}
+              {isVisible && <AnimatedCounter end={1000} suffix="+" />}
             </div>
             <p className="text-muted-foreground">Claims Verified</p>
           </div>
