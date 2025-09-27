@@ -41,9 +41,17 @@ except (ImportError, AttributeError):
 app = Flask(__name__) # 👈 Only ONE instance at the top
 
 # Configure CORS right after creating the app instance
+# This updated configuration allows requests from your deployed Vercel app
+# and common local development servers to prevent "Failed to fetch" errors.
 cors = CORS(app, resources={
     r"/*": {
-        "origins": "https://misinformation-checker-infinite-ite.vercel.app"
+        "origins": [
+            "https://misinformation-checker-infinite-ite.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173"
+        ]
     }
 })
 
@@ -375,5 +383,4 @@ def get_trends():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
 
