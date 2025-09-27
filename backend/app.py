@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -11,6 +12,31 @@ from bs4 import BeautifulSoup
 import mimetypes
 import datetime
 from threading import Lock
+
+# --- Environment Self-Check ---
+# This block checks if the installed Google AI library is modern enough.
+# Older versions default to the 'v1beta' API, which causes the 404 errors for new models.
+try:
+    from pkg_resources import parse_version
+    # The library switched to the new v1 API by default in version 0.3.0
+    MIN_GEMINI_VERSION = "0.3.0"
+    current_version = genai.__version__
+    if parse_version(current_version) < parse_version(MIN_GEMINI_VERSION):
+        print("="*80)
+        print(f"🚨 FATAL ERROR: Your 'google-generativeai' library is outdated (version {current_version}).")
+        print(f"   This is the cause of the '404 model not found' errors.")
+        print(f"   Please upgrade to version {MIN_GEMINI_VERSION} or higher to fix this.")
+        print("\n   IN YOUR TERMINAL, RUN THIS COMMAND:")
+        print("   pip install --upgrade google-generativeai")
+        print("="*80)
+        sys.exit(1) # Stop the application from starting
+except (ImportError, AttributeError):
+    print("⚠️ Warning: Could not verify 'google-generativeai' library version.")
+    print("   If you encounter 404 errors, please upgrade the library by running:")
+    print("   pip install --upgrade google-generativeai")
+    pass
+# --- End of Environment Self-Check ---
+
 
 app = Flask(__name__) # 👈 Only ONE instance at the top
 
@@ -349,4 +375,5 @@ def get_trends():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
 
