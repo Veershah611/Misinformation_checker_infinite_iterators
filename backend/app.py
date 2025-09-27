@@ -41,19 +41,10 @@ except (ImportError, AttributeError):
 app = Flask(__name__) # 👈 Only ONE instance at the top
 
 # Configure CORS right after creating the app instance
-# This updated configuration allows requests from your deployed Vercel app
-# and common local development servers to prevent "Failed to fetch" errors.
-cors = CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "https://misinformation-checker-infinite-ite.vercel.app",
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173"
-        ]
-    }
-})
+# Using a wildcard '*' for origins is a good way to debug "Failed to fetch" errors.
+# It allows requests from ANY source.
+# IMPORTANT: For production, you should restrict this back to your specific domain.
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 # --- Configuration and Setup ---
 TRENDS_LOG_FILE = "trends_log.json"
@@ -243,6 +234,12 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
         return {"error": f"An API or other error occurred: {e}"}
 
 # --- API Routes ---
+
+# Test route to check if the server is running
+@app.route("/")
+def index():
+    return "Hello, your Misinformation Checker server is running!"
+
 @app.route("/fact-check-text", methods=["POST"])
 def fact_check_text():
     data = request.get_json()
