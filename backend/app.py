@@ -1,5 +1,4 @@
 import os
-import sys
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -13,39 +12,17 @@ import mimetypes
 import datetime
 from threading import Lock
 
-# --- Environment Self-Check ---
-# This block checks if the installed Google AI library is modern enough.
-# Older versions default to the 'v1beta' API, which causes the 404 errors for new models.
-try:
-    from pkg_resources import parse_version
-    # The library switched to the new v1 API by default in version 0.3.0
-    MIN_GEMINI_VERSION = "0.3.0"
-    current_version = genai.__version__
-    if parse_version(current_version) < parse_version(MIN_GEMINI_VERSION):
-        print("="*80)
-        print(f"🚨 FATAL ERROR: Your 'google-generativeai' library is outdated (version {current_version}).")
-        print(f"   This is the cause of the '404 model not found' errors.")
-        print(f"   Please upgrade to version {MIN_GEMINI_VERSION} or higher to fix this.")
-        print("\n   IN YOUR TERMINAL, RUN THIS COMMAND:")
-        print("   pip install --upgrade google-generativeai")
-        print("="*80)
-        sys.exit(1) # Stop the application from starting
-except (ImportError, AttributeError):
-    print("⚠️ Warning: Could not verify 'google-generativeai' library version.")
-    print("   If you encounter 404 errors, please upgrade the library by running:")
-    print("   pip install --upgrade google-generativeai")
-    pass
-# --- End of Environment Self-Check ---
-
-
 app = Flask(__name__) # 👈 Only ONE instance at the top
 
 # Configure CORS right after creating the app instance
-# Using a wildcard '*' for origins is a good way to debug "Failed to fetch" errors.
-# It allows requests from ANY source.
-# IMPORTANT: For production, you should restrict this back to your specific domain.
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
+cors = CORS(app, resources={
+    r"/*": {
+        "origins": "https://misinformation-checker-infinite-ite.vercel.app"
+    }
+})
 
+# --- Configuration and Setup ---
+TRENDS_LOG_FILE = "trends_log.json"
 # --- Configuration and Setup ---
 TRENDS_LOG_FILE = "trends_log.json"
 log_lock = Lock()
@@ -105,8 +82,7 @@ def get_claim_category(claim: str) -> str:
     if not api_key or not claim.strip():
         return "Uncategorized"
     try:
-        # Using a standard, widely available model to ensure compatibility.
-        model = genai.GenerativeModel("gemini-1.0-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         prompt = f"""
         Classify the following claim into one of these categories: Health, Financial Scam, Political, Social, Technology, Other.
         Return only the category name.
@@ -150,7 +126,7 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
         facts_text = "\n".join([f"- {row['text']} (Label: {row['label']})" for _, row in facts.iterrows()])
 
     prompt = f"""
-    You are an expert, multilingual fact-checking analyst. Your primary goal is to provide a neutral, evidence-based assessment of a claim's validity in the user's original language.
+    You are a meticulous fact-checking analyst. Your task is to rigorously investigate a claim and return your analysis in the user's original language.
     **Claim to Investigate:** "{claim}"
     **Supporting Context from a Local Dataset (Use as a reference point only):**
     {facts_text}
@@ -197,22 +173,11 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
     }}
     """
     try:
-        # Using a standard, widely available model to ensure compatibility.
-        model = genai.GenerativeModel("gemini-1.0-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         contents = [prompt]
         if files:
-            # Note: 'gemini-1.0-pro' does not support files directly.
-            # For multi-modal input (images), 'gemini-pro-vision' is required.
-            # This code will proceed with text-only analysis.
-            if any(f['mime_type'].startswith('image') for f in files):
-                 vision_model = genai.GenerativeModel('gemini-pro-vision')
-                 # For a multi-modal request, you'd structure the contents differently.
-                 # Example: vision_contents = [claim_text, image_data]
-                 # For simplicity, we are still prioritizing the text analysis for this fix.
-            pass
-
-
+            contents.extend(files)
         response = model.generate_content(contents, generation_config=generation_config)
         result = json.loads(response.text)
 
@@ -234,12 +199,6 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
         return {"error": f"An API or other error occurred: {e}"}
 
 # --- API Routes ---
-
-# Test route to check if the server is running
-@app.route("/")
-def index():
-    return "Hello, your Misinformation Checker server is running!"
-
 @app.route("/fact-check-text", methods=["POST"])
 def fact_check_text():
     data = request.get_json()
@@ -292,20 +251,16 @@ def fact_check_file():
         return jsonify({"error": "No files were uploaded."}), 400
 
     gemini_files = []
-    has_image = False
     for file in files:
         if file and allowed_file(file.filename):
             mime_type = mimetypes.guess_type(file.filename)[0]
             if mime_type:
-                if mime_type.startswith('image'): has_image = True
                 gemini_files.append({"mime_type": mime_type, "data": file.read()})
     
     if not gemini_files:
         return jsonify({"error": "Uploaded file types are not supported. Please use JPG, PNG, or PDF."}), 400
 
-    # The 'gemini-1.0-pro' model handles text. For image analysis, you'd use 'gemini-pro-vision'.
-    # This call will proceed with the text from the claim.
-    result = get_fact_check_from_gemini(claim_text, source_type="file")
+    result = get_fact_check_from_gemini(claim_text, source_type="file", files=gemini_files)
     return jsonify(result)
 
 @app.route("/generate-reply", methods=["POST"])
@@ -337,8 +292,7 @@ def generate_smart_reply():
     """
     
     try:
-        # Using a standard, widely available model to ensure compatibility.
-        model = genai.GenerativeModel("gemini-1.0-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         result = json.loads(response.text)
@@ -380,4 +334,3 @@ def get_trends():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
