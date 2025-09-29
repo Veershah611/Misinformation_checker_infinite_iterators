@@ -75,7 +75,7 @@ def get_claim_category(claim: str) -> str:
     if not api_key or not claim.strip():
         return "Uncategorized"
     try:
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
         prompt = f"""
         Classify the following claim into one of these categories: 
         Health, Financial Scam, Political, Social, Technology, Other.
@@ -121,7 +121,7 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
     prompt = f""" ... (your fact-check prompt here) ... """
 
     try:
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
         generation_config = GenerationConfig(response_mime_type="application/json")
         contents = [prompt]
         if files:
@@ -179,7 +179,7 @@ def generate_smart_reply():
     prompt = f""" ... (your smart reply prompt here) ... """
     
     try:
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
         generation_config = GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         result = json.loads(response.text)
