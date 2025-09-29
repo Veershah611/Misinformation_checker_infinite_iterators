@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import google.generativeai as genai
-from google.generativeai.types import GenerationConfig  # ✅ proper import
+from google.generativeai.types import GenerationConfig
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -13,13 +13,11 @@ import mimetypes
 import datetime
 from threading import Lock
 
-app = Flask(__name__)  # 👈 Only ONE instance at the top
+app = Flask(__name__)
 
-# Configure CORS right after creating the app instance
+# Configure CORS
 cors = CORS(app, resources={
-    r"/*": {
-        "origins": "https://misinformation-checker-infinite-ite.vercel.app"
-    }
+    r"/*": {"origins": "https://misinformation-checker-infinite-ite.vercel.app"}
 })
 
 # --- Configuration and Setup ---
@@ -33,7 +31,6 @@ if not os.path.exists(TRENDS_LOG_FILE):
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "pdf"}
 
 def allowed_file(filename):
-    """Checks if the uploaded file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- Gemini API and Dataset Loading ---
@@ -49,12 +46,9 @@ except Exception as e:
     print(f"🚨 Error configuring Gemini API: {e}")
     api_key = None
 
-df = None
-vectorizer = None
-X = None
+df, vectorizer, X = None, None, None
 try:
     print("⏳ Loading local datasets...")
-    # Load datasets safely
     df1 = pd.read_csv("IFND.csv", encoding='latin1', on_bad_lines='skip')
     df2 = pd.read_csv("news_dataset.csv", encoding='latin1', on_bad_lines='skip')
     df1 = df1.rename(columns={"Statement": "text", "Label": "label", "Web": "source"})
@@ -81,9 +75,10 @@ def get_claim_category(claim: str) -> str:
     if not api_key or not claim.strip():
         return "Uncategorized"
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")  # ✅ updated
+        model = genai.GenerativeModel("models/gemini-1.5-flash")
         prompt = f"""
-        Classify the following claim into one of these categories: Health, Financial Scam, Political, Social, Technology, Other.
+        Classify the following claim into one of these categories: 
+        Health, Financial Scam, Political, Social, Technology, Other.
         Return only the category name.
 
         Claim: "{claim}"
@@ -126,7 +121,7 @@ def get_fact_check_from_gemini(claim: str, source_type: str, files: list = None)
     prompt = f""" ... (your fact-check prompt here) ... """
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")  # ✅ updated
+        model = genai.GenerativeModel("models/gemini-1.5-flash")
         generation_config = GenerationConfig(response_mime_type="application/json")
         contents = [prompt]
         if files:
@@ -163,13 +158,13 @@ def fact_check_text():
 
 @app.route("/fact-check-url", methods=["POST"])
 def fact_check_url():
-    # (unchanged, except Gemini call now uses gemini-1.5-flash-latest)
-    ...
+    # TODO: implement scraping + Gemini call
+    return jsonify({"error": "Not implemented yet."}), 501
 
 @app.route("/fact-check-file", methods=["POST"])
 def fact_check_file():
-    # (unchanged, except Gemini call now uses gemini-1.5-flash-latest)
-    ...
+    # TODO: implement file handling + Gemini call
+    return jsonify({"error": "Not implemented yet."}), 501
 
 @app.route("/generate-reply", methods=["POST"])
 def generate_smart_reply():
@@ -184,7 +179,7 @@ def generate_smart_reply():
     prompt = f""" ... (your smart reply prompt here) ... """
     
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")  # ✅ updated
+        model = genai.GenerativeModel("models/gemini-1.5-flash")
         generation_config = GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         result = json.loads(response.text)
@@ -197,8 +192,12 @@ def generate_smart_reply():
 
 @app.route("/api/trends")
 def get_trends():
-    # (unchanged)
-    ...
+    try:
+        with open(TRENDS_LOG_FILE, 'r') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception:
+        return jsonify([])
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
